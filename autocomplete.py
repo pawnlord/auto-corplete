@@ -2,13 +2,28 @@ import os
 from _thread import *
 import threading
 import time
+import threadclass
 import msvcrt
+
 
 dictionary = []
 dictionary.append("")
 word = ""
 length_weight = 0.5
 
+def nonstoppinginput(prompt=""):
+    print(prompt, end='')
+    current = ''
+    while True:
+        if msvcrt.kbhit():
+            chr = msvcrt.getche()
+            if ord(chr) == 13 or chr == '\n':
+                break
+            elif ord(chr) >= 32:
+                current+= chr.decode('utf-8')
+    print ('')  # needed to move to next line
+    return current
+    
 
 with open("words.txt", "r") as ws:
     for c in ws.read():
@@ -29,29 +44,40 @@ def score_similarity(word1, word2):
         else:
             score -= 1-(c/min(len(word1), len(word2)))
     return score
+guessed_word = ""
+word = [""]
 
-def autocomplete(word, possibilities): 
+def autocomplete(running): 
+    global word, guessed_word, dictionary
+    
     curr_word = ""
-    for c in word:
+    for c in word[0]:
         if c == ' ':
-            possibililities.append(word)
+            dictionary.append(word[0])
             curr_word = ""
         else:
             curr_word += c
     #print("possibilities" + str(possibilities))
-    print("Word: " + curr_word)    
     guess = ""
     current_best = 0
-    print(str(possibilities))
-    for i in range(len(possibilities)):
-        score = score_similarity(curr_word, possibilities[i])
+    for i in range(len(dictionary)):
+        score = score_similarity(curr_word, dictionary[i])
         if score > current_best:
-            print(score)
             guess = ""
-            guess = possibilities[i]
+            guess = dictionary[i]
             current_best = score
-    return guess
+    if guess != guessed_word:
+        print(guess)
+    guessed_word = guess
+    time.sleep(1)
+word[0] = "help"
+autot = threadclass.basicthread(autocomplete)
 while True:
-    word = input()
-    print(autocomplete(word, dictionary))
-    
+    autot = threadclass.basicthread(autocomplete, True)
+    if autot.running[0] == False:
+        autot.begin(False, name="AUTOCOMPLETE")
+    word[0] = nonstoppinginput()
+    if word[0] == "EXITNOW":
+        break
+    print(id(word))
+autot.running[0] = False
