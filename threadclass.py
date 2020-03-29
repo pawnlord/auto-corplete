@@ -21,7 +21,6 @@ class basicthread(threading.Thread):
         self.continual = continual
     def run(self):
         self.running[0] = True
-        print(self.getName() + " running id: " + str(id(self.running)))
         self.cb(self.running)
         while self.continual and self.running[0]:
             self.cb(self.running)

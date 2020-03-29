@@ -79,5 +79,4 @@ while True:
     word[0] = nonstoppinginput()
     if word[0] == "EXITNOW":
         break
-    print(id(word))
 autot.running[0] = False
