@@ -11,16 +11,18 @@ dictionary.append("")
 word = ""
 length_weight = 0.5
 
-def nonstoppinginput(prompt=""):
-    print(prompt, end='')
-    current = ''
+def nonstoppinginput(word, prompt=""):
+    print(prompt + word, end='')
+    current = word
     while True:
         if msvcrt.kbhit():
             chr = msvcrt.getche()
             if ord(chr) == 13 or chr == '\n':
+                current = ""
                 break
             elif ord(chr) >= 32:
                 current+= chr.decode('utf-8')
+                break
     print ('')  # needed to move to next line
     return current
     
@@ -67,16 +69,16 @@ def autocomplete(running):
             guess = dictionary[i]
             current_best = score
     if guess != guessed_word:
-        print(guess)
+        print("GUESSED WORD: ", guess)
     guessed_word = guess
     time.sleep(1)
-word[0] = "help"
+word[0] = ""
 autot = threadclass.basicthread(autocomplete)
 while True:
     autot = threadclass.basicthread(autocomplete, True)
     if autot.running[0] == False:
         autot.begin(False, name="AUTOCOMPLETE")
-    word[0] = nonstoppinginput()
+    word[0] = nonstoppinginput(word[0], "YOUR WORD: ")
     if word[0] == "EXITNOW":
         break
 autot.running[0] = False
