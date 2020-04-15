@@ -10,17 +10,19 @@ dictionary = []
 dictionary.append("")
 word = ""
 length_weight = 0.25 # length doesn't matter as much as actual similar letters, so weight it
+need_new_order = False
 
 if platform.platform()[:7] == "Windows": # windows function, uses msvcrt
     import msvcrt
     def nonstoppinginput(word, prompt, next_best):
+        global need_new_order
         os.system("cls")
         print(prompt + word, end='\n')
+        need_new_order = True
         current = word
         while True:
             if msvcrt.kbhit():
                 chr = msvcrt.getche()
-                print(chr)
                 if ord(chr) == 13 or chr == b'\n':
                     current = ""
                     break
@@ -36,7 +38,7 @@ if platform.platform()[:7] == "Windows": # windows function, uses msvcrt
                     current += best[0] # Change last word to whatever is currently stored in the word pointer
                                         # best contains best 3
                     break
-                elif chr == b'@' and best[0]!="": # Tab autocomplete
+                elif chr == b'@' and best[1]!="": # Tab autocomplete
                     last_space = -1
                     for i in range(len(current)):
                         if current[i] == ' ':
@@ -44,7 +46,7 @@ if platform.platform()[:7] == "Windows": # windows function, uses msvcrt
                     current = current[:last_space+1]
                     current += best[1] # get second best
                     break
-                elif chr == b'#' and best[0]!="": # Tab autocomplete
+                elif chr == b'#' and best[2]!="": # Tab autocomplete
                     last_space = -1
                     for i in range(len(current)):
                         if current[i] == ' ':
@@ -89,7 +91,7 @@ word = [""]
 # yes it's a hack, but it works
 
 def autocomplete(running): 
-    global word, guessed_word, best, dictionary
+    global word, guessed_word, best, dictionary, need_new_order
     
     curr_word = ""
     for c in word[0]:
@@ -101,20 +103,22 @@ def autocomplete(running):
     guess = ""
     current_best = 0
     for i in range(len(dictionary)):
-        score = score_similarity(curr_word, dictionary[i]) # get similarities
+        score = score_similarity(curr_word.lower(), dictionary[i]) # get similarities
         if score > current_best: # best score wins
             guess = ""
             guess = dictionary[i]
             current_best = score
             best[0], best[1], best[2] = guess, best[0], best[1]
-    
     guessed_word[0] = guess
+    if need_new_order:        
+        print("GUESSED WORD: " + guessed_word[0] + "\nNEXT BEST: " + str(best[1:]))
+        need_new_order = False
 word[0] = "" 
 try:
     autot = threadclass.basicthread(autocomplete, True) # thread running autocomplete, repeats when stopped
     autot.begin(False, name="AUTOCOMPLETE")
     while True:
-        word[0] = nonstoppinginput(word[0], "GUESSED WORD: " + guessed_word[0] + "\nNEXT BEST: " + str(best[1:]) + "\nYOUR WORD: ", best)
+        word[0] = nonstoppinginput(word[0], "YOUR WORD: ", best)
         if word[0] == "EXITNOW": # exit condition
             break
     autot.running[0] = False # stops thread
